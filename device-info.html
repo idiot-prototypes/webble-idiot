@@ -1,9 +1,6 @@
 ---
 layout: default
 feature_name: Web Bluetooth / Device Info
-chrome_version: 45
-check_min_version: true
-feature_id: 5264933985976320
 icon_url: icon.png
 index: index.html
 ---
@@ -143,18 +140,6 @@ Await)</a> sample.</p>
   <div id="status"></div>
   <pre id="log"></pre>
 </div>
-
-{% if page.check_min_version %}
-<script>
-  if (/Chrome\/(\d+\.\d+.\d+.\d+)/.test(navigator.userAgent)){
-    // Let's log a warning if the sample is not supposed to execute on this
-    // version of Chrome.
-    if ({{ page.chrome_version }} > parseInt(RegExp.$1)) {
-      ChromeSamples.setStatus('Warning! Keep in mind this sample has been tested with Chrome ' + {{ page.chrome_version }} + '.');
-    }
-  }
-</script>
-{% endif %}
 
 <script>
 {% include_relative device-info.js %}
