@@ -5,6 +5,14 @@ icon_url: icon.png
 index: index.html
 ---
 
+{% if page.icon_url %}<img class="pageIcon" src="{{ page.icon_url }}">{% endif %}
+<h1>{% if page.title %}{{ page.title }}{% else %}{{ page.feature_name }} Sample{% endif %}</h1>
+<p class="availability">
+  <a target="_blank" href="{{ site.gh_url_prefix }}{{ page.url | remove_first: 'index.html' }}">View on GitHub</a> |
+  <a {% if page.index == null %}target="_blank"{% endif %} href="{% if page.index %}{{ page.index }}{% else %}https://www.chromestatus.com/samples{% endif %}">Browse Samples</a>
+</p>
+{% for local_js_file in page.local_js_files %}<script src="{{ local_js_file }}"></script>{% endfor %}
+
 <p>The <a href="https://developers.google.com/web/updates/2015/07/interact-with-ble-devices-on-the-web">Web Bluetooth
   API</a> lets websites discover and communicate with devices over the
 Bluetooth 4 wireless standard using the Generic Attribute Profile (GATT). It is
