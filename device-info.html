@@ -156,7 +156,13 @@ Await)</a> sample.</p>
 </script>
 {% endif %}
 
-{% include js_snippet.html filename='device-info.js' %}
+<script>
+{% include_relative device-info.js %}
+</script>
+
+<h3>JavaScript Snippet</h3>
+
+{% highlight js %}{% include_relative device-info.js %}{% endhighlight %}
 
 <script>
   document.querySelector('form').addEventListener('submit', function(event) {
