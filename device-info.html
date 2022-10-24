@@ -1,12 +1,10 @@
 ---
 layout: default
-feature_name: Web Bluetooth / Device Info
-icon_url: icon.png
 index: index.html
 ---
 
-{% if page.icon_url %}<img class="pageIcon" src="{{ page.icon_url }}">{% endif %}
-<h1>{% if page.title %}{{ page.title }}{% else %}{{ page.feature_name }} Sample{% endif %}</h1>
+<img class="pageIcon" src="icon.png">
+<h1>Web Bluetooth / Device Info Sample</h1>
 <p class="availability">
   <a target="_blank" href="{{ site.gh_url_prefix }}{{ page.url | remove_first: 'index.html' }}">View on GitHub</a> |
   <a {% if page.index == null %}target="_blank"{% endif %} href="{% if page.index %}{{ page.index }}{% else %}https://www.chromestatus.com/samples{% endif %}">Browse Samples</a>
