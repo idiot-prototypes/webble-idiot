@@ -113,7 +113,7 @@ This is the *TODO* list for the current *WIP*:
 - [ ] Wi-Fi Scan Service
   - [x] Read Scanning Mode
   - [x] Write Scanning Mode
-  - [ ] Notify Scanning Mode
+  - [x] Notify Scanning Mode
   - [ ] Read AP Count
   - [ ] Read AP Details
 - [ ] Wi-Fi Connect service

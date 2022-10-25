@@ -58,6 +58,7 @@ layout: default
 <script>
   var bleDevice = null;
   var wifiScanningMode = 0;
+  var wifiScanningModeCharacteristic = null;
 
   function onPairAndConnectButtonClick() {
     if (bleDevice != null) {
@@ -136,7 +137,7 @@ layout: default
   }
 
   function onSetScanningModeButtonClick() {
-    if (bleDevice == null) {
+    if (bleDevice == null || wifiScanningMode == 1) {
       return;
     }
 
@@ -148,10 +149,35 @@ layout: default
     })
     .then(characteristic => {
       log('> Characteristic:   ' + characteristic);
+      log('> Notifications started');
+      wifiScanningModeCharacteristic = characteristic;
+      characteristic.startNotifications().then(_ => {
+        wifiScanningModeCharacteristic.addEventListener('characteristicvaluechanged',
+          onWifiScanningModeChanged);
+      })
+      .catch(error => {
+        log('Argh! ' + error);
+      });
       return characteristic.writeValue(Uint8Array.of(1));
     })
     .then(_ => {
       wifiScanningMode = 1;
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
+
+  function onWifiScanningModeChanged(event) {
+    let scanningMode = event.target.value.getUint8();
+    log('> Scanning Mode:    ' + scanningMode);
+    wifiScanningMode = scanningMode;
+    wifiScanningModeCharacteristic.stopNotifications()
+    .then(_ => {
+      log('> Notifications stopped');
+      wifiScanningModeCharacteristic.removeEventListener('characteristicvaluechanged',
+        onWifiScanningModeChanged);
+      wifiScanningModeCharacteristic = null;
     })
     .catch(error => {
       log('Argh! ' + error);
