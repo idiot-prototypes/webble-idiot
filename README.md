@@ -110,12 +110,12 @@ Count characteristic's *UUID*.
 
 This is the *TODO* list for the current *WIP*:
 
-- [ ] Wi-Fi Scan Service
+- [x] Wi-Fi Scan Service
   - [x] Read Scanning Mode
   - [x] Write Scanning Mode
   - [x] Notify Scanning Mode
-  - [ ] Read AP Count
-  - [ ] Read AP Details
+  - [x] Read AP Count
+  - [x] Read AP Details
 - [ ] Wi-Fi Connect service
   - [ ] Read Connection State
   - [ ] Write Connection State

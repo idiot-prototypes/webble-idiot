@@ -18,6 +18,8 @@ layout: default
   <button id="disconnect">Disconnect</button>
   <button id="get-scanning-mode" >Get Scanning Mode</button>
   <button id="set-scanning-mode" >Set Scanning Mode</button>
+  <button id="get-ap-count" >Get AP Count</button>
+  <button id="get-ap-details" >Get AP Details</button>
 </form>
 
 <script>
@@ -59,6 +61,8 @@ layout: default
   var bleDevice = null;
   var wifiScanningMode = 0;
   var wifiScanningModeCharacteristic = null;
+  var wifiApCount = 0;
+  var wifiApDetails = [];
 
   function onPairAndConnectButtonClick() {
     if (bleDevice != null) {
@@ -183,6 +187,82 @@ layout: default
       log('Argh! ' + error);
     });
   }
+
+  function onGetApCountButtonClick() {
+    if (bleDevice == null) {
+      return;
+    }
+
+    log('Get AP Count...');
+    bleDevice.gatt.getPrimaryService('fb8c0001-d224-11e4-85a1-0002a5d5c51b')
+    .then(service => {
+      log('> Service:          ' + service);
+      return service.getCharacteristic('fb8c0003-d224-11e4-85a1-0002a5d5c51b');
+    })
+    .then(characteristic => {
+      log('> Characteristic:   ' + characteristic);
+      return characteristic.readValue();
+    })
+    .then(value => {
+      log('> Value:            ' + value);
+      return value.getUint8();
+    })
+    .then(apCount => {
+      log('> ApCount:          ' + apCount);
+      wifiApCount = apCount;
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
+
+  function onGetApDetailsButtonClick() {
+    if (bleDevice == null) {
+      return;
+    }
+
+    log('Get AP Details...');
+    bleDevice.gatt.getPrimaryService('fb8c0001-d224-11e4-85a1-0002a5d5c51b')
+    .then(service => {
+      log('> Service:          ' + service);
+      return service.getCharacteristic('fb8c0004-d224-11e4-85a1-0002a5d5c51b');
+    })
+    .then(characteristic => {
+      log('> Characteristic:   ' + characteristic);
+      return characteristic.readValue();
+    })
+    .then(value => {
+      log('> Value:            ' + value);
+      let apDetails = [];
+      for (let i = 0; i < 14; i++) {
+        let ssidLen = value.getUint8(i * 37 + 4);
+        let ssid = [];
+        for (let j = 0; j < ssidLen; j++) {
+          ssid.push(value.getUint8(i * 37 + 5 + j));
+        }
+        apDetails.push({
+          state: value.getUint8(i * 37 + 0),
+          channel: value.getUint8(i * 37 + 1),
+          freqBand: value.getUint8(i * 37 + 2),
+          rssi: value.getInt8(i * 37 + 3),
+          ssidLen: ssidLen,
+          ssid: new TextDecoder().decode(new Uint8Array(ssid)),
+        });
+      }
+      return apDetails;
+    })
+    .then(apDetails => {
+      log('> AP Details:       ');
+      apDetails.forEach(function (item, index) {
+        if (item.ssid.length)
+          log('> - ssid:           ' + item.ssid);
+      });
+      wifiApDetails = apDetails;
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
 </script>
 
 <script>
@@ -223,6 +303,26 @@ layout: default
     if (isWebBluetoothEnabled()) {
       ChromeSamples.clearLog();
       onSetScanningModeButtonClick();
+    }
+  });
+
+  document.querySelector('#get-ap-count').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onGetApCountButtonClick();
+    }
+  });
+
+  document.querySelector('#get-ap-details').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onGetApDetailsButtonClick();
     }
   });
 </script>
