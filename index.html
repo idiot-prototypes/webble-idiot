@@ -17,6 +17,7 @@ layout: default
   <button id="pair-and-connect">Pair and connect</button>
   <button id="disconnect">Disconnect</button>
   <button id="get-scanning-mode" >Get Scanning Mode</button>
+  <button id="set-scanning-mode" >Set Scanning Mode</button>
 </form>
 
 <script>
@@ -56,6 +57,7 @@ layout: default
 
 <script>
   var bleDevice = null;
+  var wifiScanningMode = 0;
 
   function onPairAndConnectButtonClick() {
     if (bleDevice != null) {
@@ -126,6 +128,30 @@ layout: default
     })
     .then(scanningMode => {
       log('> Scanning Mode:    ' + scanningMode);
+      wifiScanningMode = scanningMode;
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
+
+  function onSetScanningModeButtonClick() {
+    if (bleDevice == null) {
+      return;
+    }
+
+    log('Set Scanning Mode...');
+    bleDevice.gatt.getPrimaryService('fb8c0001-d224-11e4-85a1-0002a5d5c51b')
+    .then(service => {
+      log('> Service:          ' + service);
+      return service.getCharacteristic('fb8c0002-d224-11e4-85a1-0002a5d5c51b');
+    })
+    .then(characteristic => {
+      log('> Characteristic:   ' + characteristic);
+      return characteristic.writeValue(Uint8Array.of(1));
+    })
+    .then(_ => {
+      wifiScanningMode = 1;
     })
     .catch(error => {
       log('Argh! ' + error);
@@ -161,6 +187,16 @@ layout: default
     if (isWebBluetoothEnabled()) {
       ChromeSamples.clearLog();
       onGetScanningModeButtonClick();
+    }
+  });
+
+  document.querySelector('#set-scanning-mode').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onSetScanningModeButtonClick();
     }
   });
 </script>
