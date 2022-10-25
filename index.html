@@ -76,6 +76,7 @@ layout: default
         log('> Connected:        ' + device.gatt.connected);
         log('> Bluetooth Device connected');
         bleDevice = device;
+        bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
       })
       .catch(error => {
         log('Argh! ' + error);
@@ -84,6 +85,11 @@ layout: default
     .catch(error => {
       log('Argh! ' + error);
     });
+  }
+
+  function onDisconnected(event) {
+    log('> Bluetooth Device disconnected');
+    bleDevice = null;
   }
 
   function onDisconnectButtonClick() {
@@ -96,9 +102,7 @@ layout: default
     log('> Connected:        ' + device.gatt.connected);
     if (device.gatt.connected) {
       device.gatt.disconnect();
-      log('> Bluetooth Device disconnected');
     }
-    bleDevice = null;
   }
 
   function onGetScanningModeButtonClick() {
