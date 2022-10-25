@@ -3,7 +3,9 @@ layout: default
 ---
 
 <img class="pageIcon" src="icon.png">
-<h1>Web Bluetooth / Device Info Sample</h1>
+<h1>Wi-Fi Provisioning</h1>
+
+<p>This Web Bluetooth application implements the <em>Wi-Fi Scan and Connect Services</em> as defined in the <a href="http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-42683-ATWINC3400-BLE-WiFi-Scan-and-Connect-Services-Guide_UserGuide.pdf">Atmel ATWINC3400 User Guide</a>
 
 <script>
   if('serviceWorker' in navigator) {
@@ -11,90 +13,9 @@ layout: default
   }
 </script>
 
-<script>
-  window.addEventListener('DOMContentLoaded', function() {
-    const searchParams = new URL(location).searchParams;
-    const inputs = Array.from(document.querySelectorAll('input[id]'));
-
-    inputs.forEach(input => {
-      if (searchParams.has(input.id)) {
-        if (input.type == 'checkbox') {
-          input.checked = searchParams.get(input.id);
-        } else {
-          input.value = searchParams.get(input.id);
-          input.blur();
-        }
-      }
-      if (input.type == 'checkbox') {
-        input.addEventListener('change', function(event) {
-          const newSearchParams = new URL(location).searchParams;
-          if (event.target.checked) {
-            newSearchParams.set(input.id, event.target.checked);
-          } else {
-            newSearchParams.delete(input.id);
-          }
-          history.replaceState({}, '', Array.from(newSearchParams).length ?
-              location.pathname + '?' + newSearchParams : location.pathname);
-        });
-      } else {
-        input.addEventListener('input', function(event) {
-          const newSearchParams = new URL(location).searchParams;
-          if (event.target.value) {
-            newSearchParams.set(input.id, event.target.value);
-          } else {
-            newSearchParams.delete(input.id);
-          }
-          history.replaceState({}, '', Array.from(newSearchParams).length ?
-              location.pathname + '?' + newSearchParams : location.pathname);
-        });
-      }
-    });
-  });
-</script>
-
 <form>
-  <label for="allDevices">All Devices</label>
-  <input id="allDevices" type="checkbox">
-  <input id="service" type="text" size=17 list="services" placeholder="Bluetooth Service">
-  <input id="name" type="text" size=17 placeholder="Device Name">
-  <input id="namePrefix" type="text" size=17 placeholder="Device Name Prefix">
-  <button>Get Bluetooth Device Info</button>
+  <button>Get Scanning Mode</button>
 </form>
-
-<datalist id="services">
-  <option value="alert_notification">alert_notification</option>
-  <option value="automation_io">automation_io</option>
-  <option value="battery_service">battery_service</option>
-  <option value="blood_pressure">blood_pressure</option>
-  <option value="body_composition">body_composition</option>
-  <option value="bond_management">bond_management</option>
-  <option value="continuous_glucose_monitoring">continuous_glucose_monitoring</option>
-  <option value="current_time">current_time</option>
-  <option value="cycling_power">cycling_power</option>
-  <option value="cycling_speed_and_cadence">cycling_speed_and_cadence</option>
-  <option value="device_information">device_information</option>
-  <option value="environmental_sensing">environmental_sensing</option>
-  <option value="generic_access">generic_access</option>
-  <option value="generic_attribute">generic_attribute</option>
-  <option value="glucose">glucose</option>
-  <option value="health_thermometer">health_thermometer</option>
-  <option value="heart_rate">heart_rate</option>
-  <option value="human_interface_device">human_interface_device (blocklisted)</option>
-  <option value="immediate_alert">immediate_alert</option>
-  <option value="indoor_positioning">indoor_positioning</option>
-  <option value="internet_protocol_support">internet_protocol_support</option>
-  <option value="link_loss">link_loss</option>
-  <option value="location_and_navigation">location_and_navigation</option>
-  <option value="next_dst_change">next_dst_change</option>
-  <option value="phone_alert_status">phone_alert_status</option>
-  <option value="pulse_oximeter">pulse_oximeter</option>
-  <option value="reference_time_update">reference_time_update</option>
-  <option value="running_speed_and_cadence">running_speed_and_cadence</option>
-  <option value="scan_parameters">scan_parameters</option>
-  <option value="tx_power">tx_power</option>
-  <option value="user_data">user_data</option>
-  <option value="weight_scale">weight_scale</option>
-</datalist>
 
 <script>
   var ChromeSamples = {
@@ -133,40 +54,33 @@ layout: default
 
 <script>
   function onButtonClick() {
-    let filters = [];
-  
-    let filterService = document.querySelector('#service').value;
-    if (filterService.startsWith('0x')) {
-      filterService = parseInt(filterService);
-    }
-    if (filterService) {
-      filters.push({services: [filterService]});
-    }
-  
-    let filterName = document.querySelector('#name').value;
-    if (filterName) {
-      filters.push({name: filterName});
-    }
-  
-    let filterNamePrefix = document.querySelector('#namePrefix').value;
-    if (filterNamePrefix) {
-      filters.push({namePrefix: filterNamePrefix});
-    }
-  
-    let options = {};
-    if (document.querySelector('#allDevices').checked) {
-      options.acceptAllDevices = true;
-    } else {
-      options.filters = filters;
-    }
-  
     log('Requesting Bluetooth Device...');
-    log('with ' + JSON.stringify(options));
-    navigator.bluetooth.requestDevice(options)
+    navigator.bluetooth.requestDevice({ filters: [{
+      services: ['fb8c0001-d224-11e4-85a1-0002a5d5c51b'] }] })
     .then(device => {
       log('> Name:             ' + device.name);
       log('> Id:               ' + device.id);
       log('> Connected:        ' + device.gatt.connected);
+      return device.gatt.connect();
+    })
+    .then(server => {
+      log('> Server:           ' + server);
+      return server.getPrimaryService('fb8c0001-d224-11e4-85a1-0002a5d5c51b');
+    })
+    .then(service => {
+      log('> Service:          ' + service);
+      return service.getCharacteristic('fb8c0002-d224-11e4-85a1-0002a5d5c51b');
+    })
+    .then(characteristic => {
+      log('> Characteristic:   ' + characteristic);
+      return characteristic.readValue();
+    })
+    .then(value => {
+      log('> Value:            ' + value);
+      return value.getUint8();
+    })
+    .then(mode => {
+      log('> Mode:             ' + mode);
     })
     .catch(error => {
       log('Argh! ' + error);
