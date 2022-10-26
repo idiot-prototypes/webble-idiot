@@ -22,6 +22,7 @@ layout: default
   <button id="get-ap-details" >Get AP Details</button>
   <button id="get-connection-state" >Get Connection State</button>
   <button id="set-connection-state" >Set Connection State</button>
+  <button id="get-ap-parameters" >Get AP Parameters</button>
 </form>
 
 <script>
@@ -342,6 +343,51 @@ layout: default
       log('Argh! ' + error);
     });
   }
+
+  function onGetApParametersButtonClick() {
+    if (bleDevice == null) {
+      return;
+    }
+
+    log('Get AP Parameters...');
+    bleDevice.gatt.getPrimaryService('77880001-d229-11e4-8689-0002a5d5c51b')
+    .then(service => {
+      log('> Service:          ' + service);
+      return service.getCharacteristic('77880003-d229-11e4-8689-0002a5d5c51b');
+    })
+    .then(characteristic => {
+      log('> Characteristic:   ' + characteristic);
+      return characteristic.readValue();
+    })
+    .then(value => {
+      log('> Value:            ' + value);
+      let ssidLen = value.getUint8(1);
+      let ssid = [];
+      for (let i = 0; i < ssidLen; i++) {
+        ssid.push(value.getUint8(2 + i));
+      }
+      let passphraseLen = value.getUint8(34);
+      let passphrase = [];
+      for (let i = 0; i < passphraseLen; i++) {
+        passphrase.push(value.getUint8(35 + i));
+      }
+      let apParameters = {
+        security: value.getUint8(0),
+        ssidLen: ssidLen,
+        ssid: new TextDecoder().decode(new Uint8Array(ssid)),
+        passphraseLen: passphraseLen,
+        passphrase: new TextDecoder().decode(new Uint8Array(passphrase)),
+      };
+      return apParameters;
+    })
+    .then(apParameters => {
+      log('> AP Parameters:    ' +  apParameters.ssid);
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
+
 </script>
 
 <script>
@@ -422,6 +468,16 @@ layout: default
     if (isWebBluetoothEnabled()) {
       ChromeSamples.clearLog();
       onSetConnectionStateButtonClick();
+    }
+  });
+
+  document.querySelector('#get-ap-parameters').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onGetApParametersButtonClick();
     }
   });
 </script>
