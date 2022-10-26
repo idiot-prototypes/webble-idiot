@@ -117,7 +117,7 @@ This is the *TODO* list for the current *WIP*:
   - [x] Read AP Count
   - [x] Read AP Details
 - [ ] Wi-Fi Connect service
-  - [ ] Read Connection State
+  - [x] Read Connection State
   - [ ] Write Connection State
   - [ ] Notify Connection State
   - [ ] Read AP Parameters

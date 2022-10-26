@@ -20,6 +20,7 @@ layout: default
   <button id="set-scanning-mode" >Set Scanning Mode</button>
   <button id="get-ap-count" >Get AP Count</button>
   <button id="get-ap-details" >Get AP Details</button>
+  <button id="get-connection-state" >Get Connection State</button>
 </form>
 
 <script>
@@ -71,7 +72,7 @@ layout: default
 
     log('Requesting Bluetooth Device...');
     navigator.bluetooth.requestDevice({ filters: [{
-      services: ['fb8c0001-d224-11e4-85a1-0002a5d5c51b'] }] })
+      services: ['fb8c0001-d224-11e4-85a1-0002a5d5c51b', '77880001-d229-11e4-8689-0002a5d5c51b'] }] })
     .then(device => {
       log('> Name:             ' + device.name);
       log('> Id:               ' + device.id);
@@ -263,6 +264,33 @@ layout: default
       log('Argh! ' + error);
     });
   }
+
+  function onGetConnectionStateButtonClick() {
+    if (bleDevice == null) {
+      return;
+    }
+
+    log('Get Connection State...');
+    bleDevice.gatt.getPrimaryService('77880001-d229-11e4-8689-0002a5d5c51b')
+    .then(service => {
+      log('> Service:          ' + service);
+      return service.getCharacteristic('77880002-d229-11e4-8689-0002a5d5c51b');
+    })
+    .then(characteristic => {
+      log('> Characteristic:   ' + characteristic);
+      return characteristic.readValue();
+    })
+    .then(value => {
+      log('> Value:            ' + value);
+      return value.getUint8();
+    })
+    .then(connectionState => {
+      log('> Connection State: ' + connectionState);
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
 </script>
 
 <script>
@@ -323,6 +351,16 @@ layout: default
     if (isWebBluetoothEnabled()) {
       ChromeSamples.clearLog();
       onGetApDetailsButtonClick();
+    }
+  });
+
+  document.querySelector('#get-connection-state').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onGetConnectionStateButtonClick();
     }
   });
 </script>
