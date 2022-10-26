@@ -23,6 +23,14 @@ layout: default
   <button id="get-connection-state" >Get Connection State</button>
   <button id="set-connection-state" >Set Connection State</button>
   <button id="get-ap-parameters" >Get AP Parameters</button>
+  <select id="security" type="select">
+    <option value="1">Not Secured</option>
+    <option value="2" selected>WPA/WPA2 personal</option>
+    <option value="3">WEP</option>
+  </select>
+  <input id="ssid" type="text" size=32 placeholder="SSID">
+  <input id="passphrase" type="password" size=63 placeholder="Passphrase">
+  <button id="set-ap-parameters" >Set AP Parameters</button>
 </form>
 
 <script>
@@ -388,6 +396,42 @@ layout: default
     });
   }
 
+  function onSetApParametersButtonClick() {
+    if (bleDevice == null) {
+      return;
+    }
+
+    log('Set AP Parameters...');
+    bleDevice.gatt.getPrimaryService('77880001-d229-11e4-8689-0002a5d5c51b')
+    .then(service => {
+      log('> Service:          ' + service);
+      return service.getCharacteristic('77880003-d229-11e4-8689-0002a5d5c51b');
+    })
+    .then(characteristic => {
+      log('> Characteristic:   ' + characteristic);
+      let security = document.querySelector('#security').value
+      let ssid = new TextEncoder().encode(document.querySelector('#ssid').value);
+      let passphrase = new TextEncoder().encode(document.querySelector('#passphrase').value);
+      let value = new Uint8Array(1+1+32+1+63);
+      value[0] = security;
+      value[1] = ssid.length;
+      for (let i = 0; i < ssid.length; i++) {
+        value[2+i] = ssid[i];
+      }
+      value[34] = passphrase.length;
+      for (let i = 0; i < passphrase.length; i++) {
+        value[35+i] = passphrase[i]; 
+      }
+      log('> Value:            ' + value);
+      log('> Security:         ' + security);
+      log('> SSID:             ' + ssid);
+      log('> Passphrase:       ' + passphrase.length);
+      return characteristic.writeValue(value);
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
 </script>
 
 <script>
@@ -478,6 +522,16 @@ layout: default
     if (isWebBluetoothEnabled()) {
       ChromeSamples.clearLog();
       onGetApParametersButtonClick();
+    }
+  });
+
+  document.querySelector('#set-ap-parameters').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onSetApParametersButtonClick();
     }
   });
 </script>

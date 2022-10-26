@@ -116,12 +116,12 @@ This is the *TODO* list for the current *WIP*:
   - [x] Notify Scanning Mode
   - [x] Read AP Count
   - [x] Read AP Details
-- [ ] Wi-Fi Connect service
+- [x] Wi-Fi Connect service
   - [x] Read Connection State
   - [x] Write Connection State
   - [x] Notify Connection State
   - [x] Read AP Parameters
-  - [ ] Write AP Parameters
+  - [x] Write AP Parameters
 - [ ] Make a very simple form for the user
 - [ ] Split index.html into HTML and JavaScript pieces
 
