@@ -21,6 +21,7 @@ layout: default
   <button id="get-ap-count" >Get AP Count</button>
   <button id="get-ap-details" >Get AP Details</button>
   <button id="get-connection-state" >Get Connection State</button>
+  <button id="set-connection-state" >Set Connection State</button>
 </form>
 
 <script>
@@ -64,6 +65,8 @@ layout: default
   var wifiScanningModeCharacteristic = null;
   var wifiApCount = 0;
   var wifiApDetails = [];
+  var wifiConnectionState = 0;
+  var wifiConnectionStateCharacteristic = null;
 
   function onPairAndConnectButtonClick() {
     if (bleDevice != null) {
@@ -291,6 +294,54 @@ layout: default
       log('Argh! ' + error);
     });
   }
+
+  function onSetConnectionStateButtonClick() {
+    if (bleDevice == null || wifiConnectionState == 1) {
+      return;
+    }
+
+    log('Set Connection State...');
+    bleDevice.gatt.getPrimaryService('77880001-d229-11e4-8689-0002a5d5c51b')
+    .then(service => {
+      log('> Service:          ' + service);
+      return service.getCharacteristic('77880002-d229-11e4-8689-0002a5d5c51b');
+    })
+    .then(characteristic => {
+      log('> Characteristic:   ' + characteristic);
+      log('> Notifications started');
+      wifiConnectionStateCharacteristic = characteristic;
+      characteristic.startNotifications().then(_ => {
+        wifiConnectionStateCharacteristic.addEventListener('characteristicvaluechanged',
+          onWifiConnectionStateChanged);
+      })
+      .catch(error => {
+        log('Argh! ' + error);
+      });
+      return characteristic.writeValue(wifiConnectionState == 0 ? Uint8Array.of(1) : Uint8Array.of(0));
+    })
+    .then(_ => {
+      wifiConnectionState = 1;
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
+
+  function onWifiConnectionStateChanged(event) {
+    let connectionState = event.target.value.getUint8();
+    log('> Connection State: ' + connectionState);
+    wifiConnectionState = connectionState;
+    wifiConnectionStateCharacteristic.stopNotifications()
+    .then(_ => {
+      log('> Notifications stopped');
+      wifiConnectionStateCharacteristic.removeEventListener('characteristicvaluechanged',
+        onWifiConnectionStateChanged);
+      wifiConnectionStateCharacteristic = null;
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+  }
 </script>
 
 <script>
@@ -361,6 +412,16 @@ layout: default
     if (isWebBluetoothEnabled()) {
       ChromeSamples.clearLog();
       onGetConnectionStateButtonClick();
+    }
+  });
+
+  document.querySelector('#set-connection-state').addEventListener('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onSetConnectionStateButtonClick();
     }
   });
 </script>

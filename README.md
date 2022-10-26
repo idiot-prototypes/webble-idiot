@@ -118,8 +118,8 @@ This is the *TODO* list for the current *WIP*:
   - [x] Read AP Details
 - [ ] Wi-Fi Connect service
   - [x] Read Connection State
-  - [ ] Write Connection State
-  - [ ] Notify Connection State
+  - [x] Write Connection State
+  - [x] Notify Connection State
   - [ ] Read AP Parameters
   - [ ] Write AP Parameters
 - [ ] Make a very simple form for the user
